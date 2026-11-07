@@ -9,6 +9,6 @@ uv sync
 
 To run fastapi
 
-```
+```shell
 uv run fastapi dev
 ```

@@ -1,11 +1,53 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hello World</title>
-</head>
-<body>
-    <h1>Hello World</h1>
-</body>
+<html>
+    <body>
+        <h1>date</h1>
+        <input type="date" id="birthday" name="birthday">
+        <h1>latitude</h1>
+        <input id="lat" type="text">
+        <h1>longitude</h1>
+        <input id="long" type="text">
+        <button onclick="submit()">submit</button>
+    </body>
 </html>
+<script>
+
+
+async function submit() {
+
+    const lat = document.getElementById("lat").value;
+
+    if (lat > 50 || lat < 46)
+        alert("You are searching a latitude outside of lummi waters");
+    const long = document.getElementById("long").value;
+    if (long > 123 || long < 122)
+        alert("you are searching a longitude outside of lummi waters");
+
+    const date = document.getElementById("date").value;
+
+    const data = { latitude: lat, longitude: long, date: date};
+  
+  try {
+    const response = await fetch("http://localhost:3000/data", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data)
+    });
+
+    if (!response.ok) {
+      alert("could not find data");
+    }
+
+    const result = await response.json();
+    alert("Server received:", result);
+  } catch (error) {
+    console.error("Failed to send JSON:", error);
+  }
+}
+
+sendJSON();
+
+</script>
+
