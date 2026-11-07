@@ -38,6 +38,9 @@ CREATE INDEX IF NOT EXISTS ais_positions_callsign_time_idx
 
 CREATE INDEX IF NOT EXISTS ais_positions_geom_idx
     ON ais_positions USING GIST (geom);
+
+CREATE INDEX IF NOT EXISTS ais_positions_mmsi_time_idx
+    ON ais_positions (mmsi, base_datetime);
 """
 
 INSERT_SQL = """
