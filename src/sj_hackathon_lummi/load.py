@@ -1,10 +1,11 @@
 import csv
 import sys
+from pathlib import Path
 
+import geopandas as gpd
 import psycopg
 
 DATABASE_URL = "postgresql://postgres:postgres@127.0.0.1:5432/lummi-db"
-
 
 CREATE_SQL = """
 CREATE EXTENSION IF NOT EXISTS postgis;
@@ -53,14 +54,14 @@ INSERT INTO ais_positions (
 
 
 def parse_float(val):
-    return float(val) if val else None
+    return float(val) if val is not None and str(val).strip() != "" else None
 
 
 def parse_int(val):
-    return int(val) if val else None
+    return int(val) if val is not None and str(val).strip() != "" else None
 
 
-def read_rows(path):
+def read_csv_rows(path):
     with open(path, newline="", encoding="utf-8") as f:
         for row in csv.DictReader(f):
             yield (
@@ -84,9 +85,69 @@ def read_rows(path):
             )
 
 
+def read_gpkg_rows(path):
+    gdf = gpd.read_file(path)
+    for _, row in gdf.iterrows():
+        geom = row.geometry
+
+        # Extract lon/lat safely depending on geometry type
+        if geom is not None:
+            if geom.geom_type == "Point":
+                lon, lat = geom.x, geom.y
+            elif geom.geom_type in ["LineString", "MultiLineString"]:
+                # Use the starting coordinate of the line/track
+                first_coords = (
+                    geom.coords[0]
+                    if geom.geom_type == "LineString"
+                    else geom.geoms[0].coords[0]
+                )
+                lon, lat = first_coords[0], first_coords[1]
+            else:
+                # Fallback to centroid for polygons or other shapes
+                centroid = geom.centroid
+                lon, lat = centroid.x, centroid.y
+        else:
+            lon = parse_float(row.get("LON"))
+            lat = parse_float(row.get("LAT"))
+
+        yield (
+            str(row.get("MMSI")) if row.get("MMSI") is not None else None,
+            str(row.get("BaseDateTime"))
+            if row.get("BaseDateTime") is not None
+            else None,
+            float(lat) if lat is not None else 0.0,
+            float(lon) if lon is not None else 0.0,
+            parse_float(row.get("SOG")),
+            parse_float(row.get("COG")),
+            parse_float(row.get("Heading")),
+            row.get("VesselName"),
+            str(row.get("IMO")) if row.get("IMO") is not None else None,
+            str(row.get("CallSign")) if row.get("CallSign") is not None else None,
+            parse_int(row.get("VesselType")),
+            parse_int(row.get("Status")),
+            parse_float(row.get("Length")),
+            parse_float(row.get("Width")),
+            parse_float(row.get("Draft")),
+            parse_int(row.get("Cargo")),
+            str(row.get("TransceiverClass"))
+            if row.get("TransceiverClass") is not None
+            else None,
+        )
+
+
+def read_rows(path):
+    ext = Path(path).suffix.lower()
+    if ext == ".csv":
+        yield from read_csv_rows(path)
+    elif ext == ".gpkg":
+        yield from read_gpkg_rows(path)
+    else:
+        raise ValueError(f"Unsupported file format: {ext}")
+
+
 def main():
     if len(sys.argv) != 2:
-        sys.exit("Usage: uv run main.py <file.csv>")
+        sys.exit("Usage: uv run main.py <file.csv|file.gpkg>")
 
     rows = list(read_rows(sys.argv[1]))
 
