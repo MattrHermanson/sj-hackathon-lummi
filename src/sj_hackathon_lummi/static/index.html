@@ -1,53 +1,28 @@
 <!DOCTYPE html>
 <html>
-    <body>
-        <h1>date</h1>
-        <input type="date" id="birthday" name="birthday">
-        <h1>latitude</h1>
-        <input id="lat" type="text">
-        <h1>longitude</h1>
-        <input id="long" type="text">
-        <button onclick="submit()">submit</button>
-    </body>
+<head>
+  <meta charset="utf-8" />
+  <title>Lummi AIS</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    body { margin: 0; font-family: sans-serif; }
+    #controls { padding: 8px; background: #f4f4f4; }
+    #map { height: calc(100vh - 50px); }
+  </style>
+</head>
+<body>
+    <div id="controls">
+      Lat <input id="lat" type="number" step="any" value="48.7767" />
+      Lon <input id="lon" type="number" step="any" value="-122.5942" />
+      Radius (km) <input id="radius" type="number" step="any" value="0.1" />
+      From <input id="start" type="datetime-local" />
+      To <input id="end" type="datetime-local" />
+      <button id="search">Search</button>
+      <span id="status"></span>
+    </div>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="app.js"></script>
+</body>
 </html>
-<script>
-
-
-async function submit() {
-
-    const lat = document.getElementById("lat").value;
-
-    if (lat > 50 || lat < 46)
-        alert("You are searching a latitude outside of lummi waters");
-    const long = document.getElementById("long").value;
-    if (long > 123 || long < 122)
-        alert("you are searching a longitude outside of lummi waters");
-
-    const date = document.getElementById("date").value;
-
-    const data = { latitude: lat, longitude: long, date: date};
-  
-  try {
-    const response = await fetch("http://localhost:3000/data", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(data)
-    });
-
-    if (!response.ok) {
-      alert("could not find data");
-    }
-
-    const result = await response.json();
-    alert("Server received:", result);
-  } catch (error) {
-    console.error("Failed to send JSON:", error);
-  }
-}
-
-sendJSON();
-
-</script>
-
