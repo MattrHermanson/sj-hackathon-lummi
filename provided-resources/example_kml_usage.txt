@@ -1,0 +1,45 @@
+import xml.etree.ElementTree as ET
+from osgeo import ogr
+def is_point_in_kml_file(lat, lon, kml_file_path):
+"""
+Checks if a given latitude and longitude falls within the polygon boundary
+defined in a KML file using GDAL/OGR.
+Parameters:
+lat (float): Latitude of the point to test.
+lon (float): Longitude of the point to test.
+kml_file_path (str): Full path to the KML file on disk.
+Returns:
+bool: True if the point is inside or on the boundary, False otherwise.
+"""
+Parse the KML file directly from disk
+tree = ET.parse(kml_file_path)
+root = tree.getroot()
+# Find the coordinates element within the KML namespace
+coords_element = root.find('.//{http://www.opengis.net/kml/2.2}coordinates')
+if coords_element is None or not coords_element.text:
+raise ValueError(f"No coordinates found in the KML file at: {kml_file_path}")
+# Build an OGR LinearRing from the KML coordinate string
+ring = ogr.Geometry(ogr.wkbLinearRing)
+for token in coords_element.text.strip().split():
+parts = token.split(',')
+lon_val = float(parts[0])
+lat_val = float(parts[1])
+ring.AddPoint(lon_val, lat_val) # OGR expects (X: lon, Y: lat)
+# Create an OGR Polygon and add the ring to its exterior boundary
+polygon = ogr.Geometry(ogr.wkbPolygon)
+polygon.AddGeometry(ring)
+# Create an OGR Point for the coordinates to test
+point = ogr.Geometry(ogr.wkbPoint)
+point.AddPoint(lon, lat) # OGR expects (X: lon, Y: lat)
+# Check if the polygon contains or touches the point
+return polygon.Contains(point) or polygon.Touches(point)
+==========================================
+Example Usage:
+==========================================
+Use a raw string (r"...") for Windows network paths to handle backslashes correctly
+kml_path = r"C:\Temp\Lummi_Reservation_Boundary.kml"
+Test coordinates near the Lummi Reservation
+test_lat = 48.7734166
+test_lon = -122.673718
+result = is_point_in_kml_file(test_lat, test_lon, kml_path)
+print(f"Is point inside reservation? {result}")
