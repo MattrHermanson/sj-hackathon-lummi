@@ -1,0 +1,52 @@
+# --- uv / Python Virtual Environments ---
+.venv/
+.python-version
+
+# --- Python Build & Caching ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.build/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# --- Environment Variables & Secrets ---
+.env
+.env.*
+!.env.example
+
+# --- Testing & Coverage ---
+.htmlcov/
+.tox/
+.nosetests/
+.pytest_cache/
+.vulture
+htmlcov/
+安定_coverage/
+.coveragerc
+coverage.xml
+*.cover
+*.py,cover
+
+# --- IDEs and Editors ---
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
