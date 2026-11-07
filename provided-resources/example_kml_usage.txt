@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as ET
 from osgeo import ogr
+
 def is_point_in_kml_file(lat, lon, kml_file_path):
 """
 Checks if a given latitude and longitude falls within the polygon boundary
@@ -11,6 +12,7 @@ kml_file_path (str): Full path to the KML file on disk.
 Returns:
 bool: True if the point is inside or on the boundary, False otherwise.
 """
+
 Parse the KML file directly from disk
 tree = ET.parse(kml_file_path)
 root = tree.getroot()
